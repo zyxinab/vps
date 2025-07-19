@@ -1,0 +1,346 @@
+<!--
+ * @Author: ZYXin
+ * @Date: 2025-03-18 10:17:09
+ * @LastEditTime: 2025-07-10 18:02:26
+ * @FilePath: /vps_new/public/index.html
+-->
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务器资产明细</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <h1>服务器资产明细</h1>
+    <div id="update-info">
+        <span>更新时间：<span id="last-update-time"></span> | 今日美元人民币汇率：<span id="exchange-rate"></span></span>
+    </div>
+
+    <div id="view-toggle" class="view-toggle">
+        <button id="providers-view-btn" class="active">提供商视图</button>
+        <button id="all-servers-view-btn">所有服务器</button>
+    </div>
+
+    <!-- 提供商视图 -->
+    <div id="providers-container" class="view-container">
+        <h2>服务提供商 <span id="provider-count" class="server-count">0</span></h2>
+        <div id="providers-list" class="providers-grid"></div>
+    </div>
+
+    <!-- 服务器视图 -->
+    <div id="server-container" class="view-container" style="display:none;">
+        <div id="provider-nav" class="provider-nav">
+            <button id="back-to-providers" class="back-button">← 返回提供商列表</button>
+            <h2 id="current-provider">所有服务器</h2>
+        </div>
+
+        <!-- 添加加载指示器 -->
+        <div id="loading-indicator" class="loading-indicator" style="display:none;">
+            <div class="spinner"></div>
+            <p>加载中，请稍候...</p>
+        </div>
+
+        <div id="servers-content">
+            <h2>活跃服务器 <span id="active-count" class="server-count">0</span></h2>
+            <div id="active-servers" class="server-list"></div>
+
+            <h2>已到期服务器 <span id="expired-count" class="server-count">0</span></h2>
+            <div id="expired-servers" class="server-list"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 视图切换按钮
+            const providersViewBtn = document.getElementById('providers-view-btn');
+            const allServersViewBtn = document.getElementById('all-servers-view-btn');
+            const providersContainer = document.getElementById('providers-container');
+            const serverContainer = document.getElementById('server-container');
+            const backToProvidersBtn = document.getElementById('back-to-providers');
+            const currentProviderTitle = document.getElementById('current-provider');
+
+            // 上次加载的数据
+            let lastProvidersData = null;
+            let currentProvider = 'all';
+
+            // 加载指示器元素
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const serversContent = document.getElementById('servers-content');
+
+            // 显示加载状态的函数
+            function showLoading() {
+                loadingIndicator.style.display = 'flex';
+                serversContent.style.display = 'none';
+            }
+
+            // 隐藏加载状态的函数
+            function hideLoading() {
+                loadingIndicator.style.display = 'none';
+                serversContent.style.display = 'block';
+            }
+
+            // 视图切换处理
+            providersViewBtn.addEventListener('click', function () {
+                providersContainer.style.display = 'block';
+                serverContainer.style.display = 'none';
+                providersViewBtn.classList.add('active');
+                allServersViewBtn.classList.remove('active');
+                loadProviders();
+            });
+
+            allServersViewBtn.addEventListener('click', function () {
+                providersContainer.style.display = 'none';
+                serverContainer.style.display = 'block';
+                providersViewBtn.classList.remove('active');
+                allServersViewBtn.classList.add('active');
+                currentProviderTitle.textContent = '所有服务器';
+                currentProvider = 'all';
+
+                showLoading(); // 显示加载指示器
+                loadServers('all');
+            });
+
+            backToProvidersBtn.addEventListener('click', function () {
+                providersContainer.style.display = 'block';
+                serverContainer.style.display = 'none';
+                providersViewBtn.classList.add('active');
+                allServersViewBtn.classList.remove('active');
+            });
+
+            // 加载提供商列表
+            function loadProviders() {
+                fetch('/api/providers')
+                    .then(response => response.json())
+                    .then(data => {
+                        lastProvidersData = data;
+                        displayProviders(data.providers);
+                        updateTimeAndRate(data);
+                    })
+                    .catch(error => {
+                        console.error('获取提供商信息失败:', error);
+                    });
+            }
+
+            // 显示提供商列表
+            function displayProviders(providers) {
+                const providersListContainer = document.getElementById('providers-list');
+                document.getElementById('provider-count').textContent = providers.length;
+
+                providersListContainer.innerHTML = '';
+
+                providers.sort((a, b) => b.activeCount - a.activeCount)
+                    .forEach((provider, index) => {
+                        const providerCard = document.createElement('div');
+                        providerCard.className = 'provider-card';
+                        providerCard.style.setProperty('--animation-order', index);
+
+                        // 国家标志
+                        let countryFlags = '';
+                        if (provider.countries && provider.countries.length > 0) {
+                            countryFlags = provider.countries.map(country =>
+                                `<img src="https://flagcdn.com/16x12/${country}.png" alt="${country}" title="${country.toUpperCase()}" class="country-flag">`
+                            ).join('');
+                        }
+
+                        providerCard.innerHTML = `
+                        <div class="provider-header">
+                            <h3>${provider.name}</h3>
+                        </div>
+                        <div class="provider-content">
+                            <div class="provider-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">${provider.activeCount}</span>
+                                    <span class="stat-label">活跃服务器</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">${provider.count - provider.activeCount}</span>
+                                    <span class="stat-label">过期服务器</span>
+                                </div>
+                            </div>
+                            <div class="provider-countries">
+                                ${countryFlags}
+                            </div>
+                        </div>
+                    `;
+
+                        // 点击提供商卡片，加载该提供商的服务器
+                        providerCard.addEventListener('click', function () {
+                            // 1. 更新UI状态
+                            currentProvider = provider.name;
+                            currentProviderTitle.textContent = provider.name;
+                            providersContainer.style.display = 'none';
+                            serverContainer.style.display = 'block';
+                            providersViewBtn.classList.remove('active');
+                            allServersViewBtn.classList.remove('active');
+
+                            // 2. 显示加载指示器
+                            showLoading();
+
+                            // 3. 加载数据
+                            loadServers(provider.name);
+                        });
+
+                        providersListContainer.appendChild(providerCard);
+                    });
+            }
+
+            // 加载服务器列表
+            function loadServers(provider = 'all') {
+                const url = provider === 'all' ? '/api/servers' : `/api/servers?provider=${encodeURIComponent(provider)}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        displayServers(data);
+                        updateTimeAndRate(data);
+                        hideLoading(); // 隐藏加载指示器
+                    })
+                    .catch(error => {
+                        console.error('获取服务器信息失败:', error);
+                        hideLoading(); // 即使出错也隐藏加载指示器
+                    });
+            }
+
+            // 更新时间和汇率信息
+            function updateTimeAndRate(data) {
+                const lastUpdateTime = document.getElementById('last-update-time');
+                const exchangeRate = document.getElementById('exchange-rate');
+
+                lastUpdateTime.textContent = new Date(data.lastUpdateTime).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+                exchangeRate.textContent = data.exchangeRate.toFixed(3);
+            }
+
+            // 显示服务器列表
+            function displayServers(data) {
+                const activeServersContainer = document.getElementById('active-servers');
+                const expiredServersContainer = document.getElementById('expired-servers');
+
+                document.getElementById('active-count').textContent = data.activeServers.length;
+                document.getElementById('expired-count').textContent = data.expiredServers.length;
+
+                activeServersContainer.innerHTML = '';
+                expiredServersContainer.innerHTML = '';
+
+                data.activeServers.forEach((server, index) => {
+                    activeServersContainer.appendChild(createServerCard(server, index));
+                });
+
+                data.expiredServers.forEach((server, index) => {
+                    expiredServersContainer.appendChild(createServerCard(server, index + data.activeServers.length));
+                });
+            }
+
+            // 创建服务器卡片
+            function createServerCard(server, index) {
+                const serverCard = document.createElement('div');
+                serverCard.className = 'server-card';
+                serverCard.style.setProperty('--animation-order', index);
+
+                const ipv4 = Array.isArray(server.ipv4) ? server.ipv4[0] : server.ipv4;
+                const ipv6 = Array.isArray(server.ipv6) ? server.ipv6[0] : server.ipv6;
+                const providerLink = server.link ?
+                    `<a href="${server.link}" target="_blank" class="provider-link">${server.provider}</a>` :
+                    server.provider;
+
+                const countryCode = server.country || 'un';
+                const countryFlag = `<img src="https://flagcdn.com/16x12/${countryCode}.png" alt="${countryCode}" style="vertical-align: middle; margin-right: 5px;">`;
+
+                let expiryClass = '';
+                if (server.days <= 0) {
+                    expiryClass = 'expired';
+                } else if (server.days <= 30) {
+                    expiryClass = 'soon';
+                }
+
+                const priceDisplay = server.price === '0' ?
+                    `<span class="free-tag">免费</span>` :
+                    `<span>${server.price} / ${server.paymentMethod}</span>`;
+
+                serverCard.innerHTML = `
+                    <div class="server-header">
+                        <h3>${providerLink}</h3>
+                        <span class="country-tag">${countryFlag} ${countryCode.toUpperCase()}</span>
+                    </div>
+                    <div class="server-content">
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">CPU</span>
+                                <span class="spec-value">${server.cpu}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">内存</span>
+                                <span class="spec-value">${server.memory}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">存储</span>
+                                <span class="spec-value">${server.storage}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">带宽</span>
+                                <span class="spec-value">${server.bandwidth}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="server-details">
+                            <div class="detail-item">
+                                <div class="detail-label">IPv4</div>
+                                <div class="detail-value"><span class="ip-address">${ipv4 || '无'}</span></div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">IPv6</div>
+                                <div class="detail-value"><span class="ip-address">${ipv6 || '无'}</span></div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">剩余天数</div>
+                                <div class="detail-value">${server.days}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">剩余价值</div>
+                                <div class="detail-value">${server.value}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="description-box">
+                            ${server.description}
+                        </div>
+                    </div>
+                    <div class="server-footer">
+                        <div class="price-tag">${priceDisplay}</div>
+                        <div class="expiry-date ${expiryClass}">到期: ${new Date(server.expiryDate).toLocaleDateString()}</div>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    const ipAddresses = serverCard.querySelectorAll('.ip-address');
+                    ipAddresses.forEach(ip => {
+                        if (ip.textContent !== '无') {
+                            ip.title = '点击复制';
+                            ip.addEventListener('click', function () {
+                                navigator.clipboard.writeText(this.textContent)
+                                    .then(() => {
+                                        const originalText = this.textContent;
+                                        this.textContent = '已复制!';
+                                        setTimeout(() => {
+                                            this.textContent = originalText;
+                                        }, 1000);
+                                    });
+                            });
+                        }
+                    });
+                }, 100);
+
+                return serverCard;
+            }
+
+            // 初始加载提供商列表
+            loadProviders();
+        });
+    </script>
+</body>
+
+</html>

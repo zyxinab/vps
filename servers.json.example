@@ -1,0 +1,32 @@
+[
+    {
+        "provider": "",
+        "cpu": "1C",
+        "memory": "2048MB",
+        "storage": "20GB",
+        "bandwidth": "2TB @ 1Gbps",
+        "ipv4": "",
+        "ipv6": "",
+        "price": "$11.35",
+        "paymentMethod": "年",
+        "expiryDate": "2026-03-22",
+        "description": "",
+        "link": "",
+        "country": "sg"
+    },
+    {
+        "provider": "",
+        "cpu": "1C",
+        "memory": "768MB",
+        "storage": "5GB",
+        "bandwidth": "384GB @ 10Gbps",
+        "ipv4": "",
+        "ipv6": "",
+        "price": "0",
+        "paymentMethod": "年",
+        "expiryDate": "2026-03-27",
+        "description": "",
+        "link": "",
+        "country": "sg"
+    }
+]

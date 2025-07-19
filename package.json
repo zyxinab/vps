@@ -1,0 +1,17 @@
+{
+    "name": "server-info",
+    "version": "1.0.0",
+    "description": "展示多个服务器信息的页面",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "split": "node providers-splitter.js"
+    },
+    "dependencies": {
+        "express": "^4.17.1",
+        "axios": "^0.21.1",
+        "node-cron": "^2.0.3"
+    },
+    "author": "ZYXin",
+    "license": "CC-BY-NC-4.0"
+}
