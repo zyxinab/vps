@@ -2,7 +2,7 @@
  * @Author: ZYXin
  * @Date: 2025-03-18 15:41:01
  * @LastEditTime: 2025-07-19 15:28:37
- * @FilePath: /vps_new/README.md
+ * @FilePath: /vps/README.md
 -->
 # 服务器资产管理系统 🖥️
 
@@ -33,15 +33,12 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/zyxinab/vps.git
 cd vps_new
-
 # 安装依赖
 npm install
-
 # 复制示例配置文件
 cp servers.json.example servers.json
-
 # 编辑配置文件，添加您的服务器信息
 # 请根据实际情况修改 servers.json 文件
 ```
@@ -51,22 +48,10 @@ cp servers.json.example servers.json
 ```bash
 # 1. 分割提供商数据
 npm run split
-
 # 2. 启动服务器
 npm start
-
 # 访问应用
 # 浏览器打开 http://localhost:8655
-```
-
-### 可用脚本
-
-```bash
-# 分割提供商数据
-npm run split
-
-# 启动服务器
-npm start
 ```
 
 ## 📁 项目结构
@@ -87,18 +72,12 @@ vps/
 ```
 
 ## 🔧 配置
-
 ### 服务器数据配置
-
-**重要提示：`servers.json` 文件包含敏感信息，已在 `.gitignore` 中排除，不会上传到Git仓库。**
-
 1. 复制示例配置文件：
 ```bash
 cp servers.json.example servers.json
 ```
-
 2. 编辑 `servers.json` 文件来添加或修改服务器信息：
-
 ```json
 [
     {
@@ -118,63 +97,45 @@ cp servers.json.example servers.json
     }
 ]
 ```
-
 ## 🖥️ API 端点
-
 - `GET /` - 主页面
 - `GET /api/servers` - 获取服务器信息
 - `GET /api/exchange-rate` - 获取汇率信息
 
 ## 📱 界面预览
-
 系统提供两种视图模式：
-
 1. **提供商视图** - 按服务提供商分组显示服务器
 2. **所有服务器视图** - 显示所有服务器的统一列表
-
 每个服务器卡片显示：
 - 基本配置信息（CPU、内存、存储等）
 - 价格信息（支持多币种，自动转换为人民币）
 - 到期状态和剩余时间
 - IP地址和提供商信息
-
 ## 🛠️ 技术栈
-
 - **后端**: Node.js + Express
 - **前端**: HTML5 + CSS3 + JavaScript
 - **字体**: Google Fonts (Open Sans)
 - **定时任务**: node-cron
 - **HTTP客户端**: axios
-
 ## 🔄 自动化功能
-
 - **定时更新**: 每日凌晨自动更新服务器状态
 - **文件监控**: 自动检测 `servers.json` 变化并重新加载
 - **汇率获取**: 自动获取最新的美元汇率
 - **状态计算**: 自动计算服务器到期状态和剩余时间
-
 ## 🤝 贡献
-
 欢迎提交 Issue 和 Pull Request！
-
 1. Fork 这个项目
 2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
 3. 提交你的改动 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开一个 Pull Request
-
 ## 📄 许可证
-
 本项目基于 [Creative Commons Attribution-NonCommercial 4.0 International License](LICENSE) 开源，仅允许非商业用途。
-
 详情请查看：https://creativecommons.org/licenses/by-nc/4.0/
 
-## 👨‍💻 作者
+<div align="center">
+   
+**如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！**
+Made with ❤️ by [ZYXin](https://github.com/zyxinab)
 
-**ZYXin**
-
-如果这个项目对你有帮助，请给个 ⭐️ 支持一下！
-
----
-
-*Built with ❤️ by ZYXin*
+</div>
