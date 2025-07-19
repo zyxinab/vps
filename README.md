@@ -131,6 +131,7 @@ cp servers.json.example servers.json
 5. 打开一个 Pull Request
 ## 📄 许可证
 本项目基于 [Creative Commons Attribution-NonCommercial 4.0 International License](LICENSE) 开源，仅允许非商业用途。
+
 详情请查看：https://creativecommons.org/licenses/by-nc/4.0/
 
 <div align="center">
